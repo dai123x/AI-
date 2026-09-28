@@ -1,8 +1,78 @@
-# GitHub Pages 自定义域名部署完整教程（从买域名开始）
+# 📚 GitHub Pages 自定义域名部署完整实战教程 & 检索指南
 
-> 目标：从零开始，拥有一个属于自己的域名，并把它绑定到 GitHub Pages 上，得到一个**免费、自带 HTTPS、自动续期证书**的网站。
-> 全程不购买服务器，零服务器费用，适合 HTML/CSS/JS 静态网站。
-> 本教程所有个人敏感信息（域名、用户名等）均已用占位符 `<...>` 代替。
+[![GitHub Pages](https://img.shields.io/badge/Hosting-GitHub%20Pages-brightgreen)](https://pages.github.com/)
+[![HTTPS](https://img.shields.io/badge/Security-Enforce%20HTTPS-blue)](https://letsencrypt.org/)
+[![DNS](https://img.shields.io/badge/DNS-DNSPod%20%7C%20TencentCloud-orange)](https://dnspod.cloud.tencent.com/)
+[![Cost](https://img.shields.io/badge/Cost-Zero%20Server%20Fee-success)](#)
+
+> **目标**：从零开始选购域名，绑定至 GitHub Pages 静态网站，拥有**免费、自带 HTTPS 绿锁、自动续期 SSL 证书**的独立域名网站。
+> **特性**：全程零服务器费用，无需维护后端，适合 HTML/CSS/JS、Hexo、Hugo、VuePress、VitePress 等静态站点。
+
+---
+
+## 🧭 快速检索与痛点速查导航（按问题直达）
+
+| 🔍 搜索关键词 / 遇到的问题 | 💡 核心原因与速解 | 📖 对应章节 |
+| :--- | :--- | :--- |
+| **买完域名怎么选？** / 腾讯云实名认证 | 国内域名必须先过实名审核，无需买服务器，托管选 GitHub Pages 即可 | [第 1 章](#第-1-章-购买域名以腾讯云为例) · [第 2 章](#第-2-章-确定托管方式为什么选-github-pages) |
+| **仓库怎么建？** / 仓库名必须叫什么 | 必须公开（Public），仓库名严格为 `<你的GitHub用户名>.github.io` | [第 4 章](#第-4-章-创建-github-pages-专用仓库) |
+| **TXT 验证记录怎么填？** / 所有权验证 | 主机记录填 `_github-pages-challenge-<用户名>`（**不能**带域名后缀），记录值贴长串字符 | [第 5 章](#第-5-章-域名所有权验证txt-记录) |
+| **`ERR_EMPTY_RESPONSE` / 打不开网站** | 只做了 TXT 验证，**漏配了 A 记录或 CNAME 解析**；或刚配完 DNS 仍在生效中 | [第 6 章](#第-6-章-配置-dns-解析记录让域名指向-github) · [第 10 章](#第-10-章-常见问题排查表) |
+| **DNSPod 报“负载均衡超出套餐限制”** | DNSPod 免费版同一主机记录限 2 条 A 记录，从官方 4 个 IP 中**任选 2 个**即可 | [第 6.2 节](#62-添加-a-记录主域名-) |
+| **CNAME 解析失效 / 报错** | 检查记录值末尾**是否漏掉了英文句号 `.`**（如 `<用户名>.github.io.`） | [第 6.3 节](#63-添加-cname-记录www-子域名) |
+| **访问出现 404 Not Found** | 根目录缺少 `index.html`、放进了子文件夹，或文件名大小写错误（必须全小写） | [第 7 章](#第-7-章-上传首页文件-indexhtml) |
+| **`Enforce HTTPS` 是灰色的勾选不了** | DNS 解析尚未完全生效，或 Let's Encrypt 证书正在签发（需 5~30 分钟），勿重复点保存 | [第 8 章](#第-8-章-绑定自定义域名--开启-https) · [第 10 章](#第-10-章-常见问题排查表) |
+| **浏览器提示“网站不安全”** | 证书未签发完成；无需去服务商下载证书，GitHub 会全自动签发并定期轮换 | [第 8 章](#第-8-章-绑定自定义域名--开启-https) · [附录 A](#附录-a关于域名与-ssl-证书的常见疑问) |
+| **如何用命令行自检 DNS 状态** | 使用 `nslookup 你的域名` 或 `ipconfig /flushdns` 刷新本地 DNS 缓存 | [第 9 章](#第-9-章-访问测试) |
+
+---
+
+## 🏷️ 检索关键词索引（Keywords & Topics）
+
+为方便开发者在 GitHub 站内及搜索引擎中检索，本仓库涵盖以下高频搜索主题：
+- **核心概念**：`GitHub Pages`, `自定义域名 (Custom Domain)`, `独立域名建站`, `静态网站托管`, `DNS 解析`, `免费建站`
+- **解析与记录**：`DNSPod`, `腾讯云域名`, `A 记录 (185.199.108.153)`, `CNAME 别名解析`, `TXT 验证记录`, `_github-pages-challenge`
+- **安全与证书**：`HTTPS 强制启用 (Enforce HTTPS)`, `SSL 证书自动续期`, `Let's Encrypt`, `DV 证书区别`
+- **故障排查**：`ERR_EMPTY_RESPONSE`, `404 Not Found`, `DNS Check Failed`, `DNS Check in Progress`, `子域名负载均衡超限`
+
+---
+
+## ⚡ 核心参数速查备忘单（Cheatsheet）
+
+### 1. GitHub Pages 官方 4 个固定 IPv4 节点（4 选 2 即可）
+```text
+185.199.108.153
+185.199.109.153
+185.199.110.153
+185.199.111.153
+```
+
+### 2. DNSPod 记录配置标准对照表
+| 类型 | 主机记录 | 记录值 | 关键细节 |
+| :--- | :--- | :--- | :--- |
+| **TXT** | `_github-pages-challenge-<用户名>` | `<GitHub 生成的一长串随机字符>` | 域名所有权验证，主机记录末尾**不加**域名后缀 |
+| **A** | `@` | `185.199.108.153` | 主域名解析节点 1 |
+| **A** | `@` | `185.199.109.153` | 主域名解析节点 2 |
+| **CNAME** | `www` | `<你的GitHub用户名>.github.io.` | www 子域名解析，记录值末尾**必须带英文点号 `.`** |
+
+---
+
+## 📑 教程目录
+
+- [第 0 章 开始之前：先看懂全流程](#第-0-章-开始之前先看懂全流程)
+- [第 1 章 购买域名（以腾讯云为例）](#第-1-章-购买域名以腾讯云为例)
+- [第 2 章 确定托管方式：为什么选 GitHub Pages](#第-2-章-确定托管方式为什么选-github-pages)
+- [第 3 章 注册 GitHub 账号](#第-3-章-注册-github-账号)
+- [第 4 章 创建 GitHub Pages 专用仓库](#第-4-章-创建-github-pages-专用仓库)
+- [第 5 章 域名所有权验证（TXT 记录）](#第-5-章-域名所有权验证txt-记录)
+- [第 6 章 配置 DNS 解析记录（让域名指向 GitHub）](#第-6-章-配置-dns-解析记录让域名指向-github)
+- [第 7 章 上传首页文件 index.html](#第-7-章-上传首页文件-indexhtml)
+- [第 8 章 绑定自定义域名 + 开启 HTTPS](#第-8-章-绑定自定义域名--开启-https)
+- [第 9 章 访问测试与命令行诊断](#第-9-章-访问测试)
+- [第 10 章 常见问题排查表](#第-10-章-常见问题排查表)
+- [附录 A：关于域名与 SSL 证书的常见疑问](#附录-a关于域名与-ssl-证书的常见疑问)
+- [附录 B：服务器方案要点速查（升级备用）](#附录-b服务器方案要点速查升级备用)
+- [附录 C：日常维护清单](#附录-c日常维护清单)
 
 ---
 
@@ -330,12 +400,12 @@ GitHub Pages 官方提供 4 个固定 IP：
   - `https://example.com`
   - `https://www.example.com`
 
-### 9.2 命令行诊断（Windows CMD / Mac 终端）
-```
+### 9.2 命令行诊断（Windows CMD / PowerShell）
+```bash
 nslookup example.com
 ```
 - 正常结果：返回 `185.199.108.x` 或 `185.199.109.x` 等 GitHub IP。
-- 返回其他 IP 或超时：DNS 缓存未更新，继续等待或清缓存。
+- 返回其他 IP 或超时：DNS 缓存未更新，继续等待或清缓存（CMD: `ipconfig /flushdns`）。
 
 ### 9.3 快速自检清单
 - [ ] 域名实名认证已通过
@@ -414,4 +484,4 @@ nslookup example.com
 ---
 
 *本教程已去除域名、GitHub 用户名等全部个人敏感信息，通用步骤可直接复用。*
-#（注：内容由AI生成）
+#(注：内容由AI生成)
