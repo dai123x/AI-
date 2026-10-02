@@ -322,7 +322,7 @@ DNS 服务商对同一主机记录的数量/负载均衡限制会随套餐和线
   - `https://www.example.com`
 
 ### 9.2 命令行诊断（Windows CMD / Mac 终端）
-```
+```bash
 nslookup example.com
 ```
 - 正常结果：返回 `185.199.108.x` 或 `185.199.109.x` 等 GitHub IP。
@@ -405,4 +405,4 @@ nslookup example.com
 ---
 
 *本教程已去除域名、GitHub 用户名等全部个人敏感信息，通用步骤可直接复用。*
-#（注：内容由AI生成）
+> *（注：内容由 AI 辅助整理与校对）*
