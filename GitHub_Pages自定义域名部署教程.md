@@ -14,7 +14,7 @@
 | 2 | 注册 GitHub 账号 | 免费 | 几分钟 |
 | 3 | 创建 Pages 专用仓库 | 免费 | 几分钟 |
 | 4 | （推荐）域名所有权验证（TXT） | 免费 | 可提前完成；不是 DNS 指向与站点发布的替代步骤 |
-| 5 | 配置 DNS 解析（A / CNAME） | 免费 | 几分钟 + DNS 生效 10~30 分钟 |
+| 5 | 先在仓库保存 Custom domain，再配置 DNS（A / CNAME） | 免费 | DNS 传播可能需要 24 小时 |
 | 6 | 上传首页文件 index.html | 免费 | 几分钟 |
 | 7 | 绑定域名 + 开启 HTTPS | 免费 | 证书签发几分钟~几十分钟 |
 | 8 | 访问测试 | 免费 | 即时 |
@@ -115,10 +115,10 @@
 1. 登录 GitHub 后，点击页面左上角绿色按钮【New】（新建仓库）。
 2. 填写仓库信息。
 
-### 4.2 仓库命名（必须严格遵守）
-- **Repository name** 必须一字不差填：**`<你的GitHub用户名>.github.io`**
-- 示例：用户名是 `myname123`，仓库名就是 `myname123.github.io`
-- 这是个人站点专用命名，写错就无法正常启用 Pages。
+### 4.2 仓库命名（用户站点与项目站点）
+- 本教程创建用户站点，**Repository name** 填：**`<你的GitHub用户名>.github.io`**。
+- 示例：用户名是 `myname123`，仓库名就是 `myname123.github.io`。
+- 项目站点可使用其他仓库名，默认访问路径为 `https://<用户名>.github.io/<仓库名>/`；同样可按要求绑定自定义域名。
 
 ### 4.3 可见性
 - 按当前 GitHub 账户/组织方案与仓库策略选择可见性；不要把“必须公开”当作所有方案的通用要求。创建前请核对 GitHub Pages 对该方案的支持条件。
@@ -160,7 +160,7 @@
 4. 点【确认】保存。
 
 ### 5.2 等待生效
-- DNS 生效一般 **5～15 分钟**，个别网络最长 1 小时。
+- DNS 传播可能立即生效，也可能需要最长 24 小时；请查询 TXT 记录确认实际状态。
 - 生效期间不要反复修改记录。
 
 ### 5.3 回到 GitHub 验证
@@ -178,6 +178,7 @@
 ## 第 6 章 配置 DNS 解析记录（让域名指向 GitHub）
 
 > 目标：访问 `example.com` 时，DNS 把你的请求转到 GitHub Pages 服务器。
+> 配置 DNS 前，先进入仓库【Settings】→【Pages】→ **Custom domain** 保存域名；需要时先按第 7.5 节开启 Pages。若已绑定则无需重复保存。账户级 TXT 验证不能代替仓库绑定。
 
 ### 6.1 打开解析面板
 DNSPod 控制台 → 点你的域名 → 【记录管理】页面（就是刚才加 TXT 的地方），点【添加记录】。
@@ -226,7 +227,7 @@ DNS 服务商对同一主机记录的数量/负载均衡限制会随套餐和线
 
 ## 第 7 章 上传首页文件 index.html
 
-> 仓库根目录必须有 `index.html`，否则即使解析通了也会 404。
+> 本教程采用 `main` 分支的 `/(root)` 发布源，因此将 `index.html` 放在仓库根目录。若选择 `/docs` 发布源，则入口应位于 `/docs`；自定义 Actions 的入口应位于发布产物顶层。GitHub 也支持 `index.md` 或 `README.md` 入口。
 
 ### 7.1 进入仓库
 浏览器打开：`https://github.com/<你的GitHub用户名>/<你的GitHub用户名>.github.io`
@@ -234,7 +235,7 @@ DNS 服务商对同一主机记录的数量/负载均衡限制会随套餐和线
 ### 7.2 新建文件
 1. 点【Add file】→【Create new file】。
 2. **文件名**填写：`index.html`（**必须全小写**，`Index.html`、`INDEX.HTML` 都不行）。
-3. 必须放在**仓库根目录**（不要创建文件夹再放进去）。
+3. 按本教程的 `main` + `/(root)` 发布源，将文件放在**仓库根目录**；其他发布源应使用对应的入口位置。
 
 ### 7.3 粘贴页面代码
 基础版（够用）：
@@ -330,8 +331,8 @@ nslookup example.com
 
 ### 9.3 快速自检清单
 - [ ] 域名实名认证已通过
-- [ ] 仓库名是 `<用户名>.github.io`
-- [ ] 仓库根目录有 `index.html`（全小写）
+- [ ] 用户站点仓库名是 `<用户名>.github.io`；项目站点可使用其他名称
+- [ ] 所选发布源或构建产物的顶层包含有效入口（本教程为 `index.html`）
 - [ ] DNS 记录符合 GitHub 与当前 DNS 服务商的要求（添加 GitHub 实际生成的验证 TXT 记录）
 - [ ] Custom domain 已绑定，DNS check successful
 - [ ] Enforce HTTPS 已勾选
@@ -344,7 +345,7 @@ nslookup example.com
 | 现象 | 可能原因 | 解决办法 |
 | ---- | ---- | ---- |
 | `ERR_EMPTY_RESPONSE` / 无法访问 | DNS 记录不匹配/未生效、Pages 尚未部署，或 Custom domain 配置有误 | 核对四条 apex A 记录（或相应 CNAME）、Pages 发布状态和仓库域名设置；TXT 验证本身不是网站可访问的必要条件 |
-| 404 页面 | 仓库没有 index.html；文件放进了子文件夹；文件名大小写不对 | 在仓库根目录建 `index.html`（全小写） |
+| 404 页面 | 发布源或构建产物缺少入口；路径或大小写不匹配 | 本教程在 `main` 分支根目录建 `index.html`；其他发布源核对对应目录或产物顶层 |
 | 404 持续 | Pages 首次构建未完成 | 进【Actions】看部署，等绿色成功（2~5 分钟） |
 | 404 且 Actions 成功 | 分支/目录配置不对 | Pages 来源选 `Deploy from a branch`，分支 `main`，目录 `/(root)` |
 | Enforce HTTPS 灰色不可勾选 | DNS 校验或证书签发未完成 | 等待，勿反复保存；通过后自动解锁 |
@@ -406,3 +407,11 @@ nslookup example.com
 
 *本教程已去除域名、GitHub 用户名等全部个人敏感信息，通用步骤可直接复用。*
 > *（注：内容由 AI 辅助整理与校对）*
+
+## 官方参考与核对日期
+
+以下操作说明于 2026-10-26 对照官方文档核对；DNS 套餐、价格和控制台界面以服务商实际页面为准。
+
+- [创建 GitHub Pages 站点：仓库命名、入口与发布源](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site)
+- [账户级域名验证与 TXT 记录](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages)
+- [自定义域名绑定与 DNS 记录](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)
